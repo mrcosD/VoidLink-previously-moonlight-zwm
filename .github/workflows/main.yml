@@ -18,8 +18,8 @@ jobs:
           # 1. Find the exact Xcode project file name
           PROJECT=$(ls -d *.xcodeproj | head -n 1)
           
-          # 2. Extract the actual scheme safely (ignoring Xcode's internal logging)
-          SCHEME=$(xcodebuild -list -project "$PROJECT" | awk '/Schemes:/{flag=1; next} flag' | grep -iE "Moonlight|VoidLink" | grep -iv "TV" | head -n 1 | xargs)
+          # 2. Extract the actual scheme, strictly ignoring background libraries, TV, and Watch targets
+          SCHEME=$(xcodebuild -list -project "$PROJECT" | awk '/Schemes:/{flag=1; next} flag' | grep -iE "Moonlight|VoidLink|Limelight" | grep -iv "TV" | grep -iv "common" | grep -iv "watch" | head -n 1 | xargs)
           
           # 3. Build the app using the securely discovered scheme
           xcodebuild clean build -project "$PROJECT" -scheme "$SCHEME" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath Build_out
