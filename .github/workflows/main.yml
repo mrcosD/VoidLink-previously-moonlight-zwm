@@ -13,6 +13,12 @@ jobs:
           ref: Integration
           submodules: recursive
 
+      - name: Patch Incompatible Developer Code
+        run: |
+          # The developer used a brand new iOS UI feature that the cloud builder doesn't support yet.
+          # This command searches all Swift files and comments out the breaking lines.
+          find . -type f -name "*.swift" -exec sed -i '' 's/.*hidesSharedBackground.*/\/\/ Patched for Xcode runner compatibility/g' {} +
+
       - name: Compile and Build Unsigned IPA
         run: |
           # 1. Find the exact Xcode project file name
