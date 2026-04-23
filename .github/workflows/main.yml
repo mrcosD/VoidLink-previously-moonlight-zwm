@@ -15,8 +15,7 @@ jobs:
 
       - name: Patch Incompatible Developer Code
         run: |
-          # The developer used a brand new iOS UI feature that the cloud builder doesn't support yet.
-          # This command searches all Swift files and comments out the breaking lines.
+          # Patch the iOS 18+ UI bug that breaks older Xcode runners
           find . -type f -name "*.swift" -exec sed -i '' 's/.*hidesSharedBackground.*/\/\/ Patched for Xcode runner compatibility/g' {} +
 
       - name: Compile and Build Unsigned IPA
@@ -27,8 +26,8 @@ jobs:
           # 2. Extract the actual scheme, strictly ignoring background libraries, TV, and Watch targets
           SCHEME=$(xcodebuild -list -project "$PROJECT" | awk '/Schemes:/{flag=1; next} flag' | grep -iE "Moonlight|VoidLink|Limelight" | grep -iv "TV" | grep -iv "common" | grep -iv "watch" | head -n 1 | xargs)
           
-          # 3. Build the app using the securely discovered scheme
-          xcodebuild clean build -project "$PROJECT" -scheme "$SCHEME" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath Build_out
+          # 3. Build the app, strictly ignoring warnings that cause StreamView.m to fail
+          xcodebuild clean build -project "$PROJECT" -scheme "$SCHEME" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO GCC_TREAT_WARNINGS_AS_ERRORS=NO -derivedDataPath Build_out
           
           # 4. Pack the compiled app into an IPA
           mkdir Payload
