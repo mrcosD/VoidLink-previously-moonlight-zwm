@@ -15,11 +15,10 @@ jobs:
 
       - name: Patch Incompatible Developer Code
         run: |
-          # 1. Search ALL Swift and Objective-C files to patch out hidesSharedBackground
-          find . -type f \( -name "*.swift" -o -name "*.m" -o -name "*.h" \) -exec sed -i '' 's/.*hidesSharedBackground.*/\/\/ Patched hidesSharedBackground/g' {} +
-          
-          # 2. Search ALL files to patch out the undocumented UIGlassEffect
-          find . -type f \( -name "*.swift" -o -name "*.m" -o -name "*.h" \) -exec sed -i '' 's/.*UIGlassEffect.*/\/\/ Patched UIGlassEffect/g' {} +
+          # Safely swap beta UI code with standard UI code so we don't break syntax
+          find . -type f \( -name "*.swift" -o -name "*.m" -o -name "*.h" \) -exec sed -i '' 's/UIGlassEffectStyleClear/UIBlurEffectStyleRegular/g' {} +
+          find . -type f \( -name "*.swift" -o -name "*.m" -o -name "*.h" \) -exec sed -i '' 's/UIGlassEffect/UIBlurEffect/g' {} +
+          find . -type f \( -name "*.swift" -o -name "*.m" -o -name "*.h" \) -exec sed -i '' 's/hidesSharedBackground/isEnabled/g' {} +
 
       - name: Compile and Build Unsigned IPA
         run: |
