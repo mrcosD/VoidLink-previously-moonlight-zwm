@@ -15,9 +15,19 @@ jobs:
 
       - name: Compile and Build Unsigned IPA
         run: |
-          xcodebuild clean build -project Moonlight.xcodeproj -scheme "Moonlight" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath Build_out
+          # 1. Find whatever the Xcode project file is named
+          PROJECT=$(ls -d *.xcodeproj | head -n 1)
+          
+          # 2. Find the main iOS app scheme (ignoring the Apple TV version)
+          SCHEME=$(xcodebuild -list -project "$PROJECT" | grep -iE "Moonlight|VoidLink" | grep -iv "TV" | head -n 1 | xargs)
+          
+          # 3. Build the app using the discovered project and scheme
+          xcodebuild clean build -project "$PROJECT" -scheme "$SCHEME" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath Build_out
+          
+          # 4. Find the generated .app folder and pack it into an IPA
           mkdir Payload
-          cp -R Build_out/Build/Products/Release-iphoneos/Moonlight.app Payload/
+          APP_PATH=$(find Build_out/Build/Products/Release-iphoneos -maxdepth 1 -type d -name "*.app" | head -n 1)
+          cp -R "$APP_PATH" Payload/
           zip -r VoidLink.ipa Payload
 
       - name: Upload IPA Artifact
