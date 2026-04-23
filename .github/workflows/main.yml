@@ -15,16 +15,16 @@ jobs:
 
       - name: Compile and Build Unsigned IPA
         run: |
-          # 1. Find whatever the Xcode project file is named
+          # 1. Find the exact Xcode project file name
           PROJECT=$(ls -d *.xcodeproj | head -n 1)
           
-          # 2. Find the main iOS app scheme (ignoring the Apple TV version)
-          SCHEME=$(xcodebuild -list -project "$PROJECT" | grep -iE "Moonlight|VoidLink" | grep -iv "TV" | head -n 1 | xargs)
+          # 2. Extract the actual scheme safely (ignoring Xcode's internal logging)
+          SCHEME=$(xcodebuild -list -project "$PROJECT" | awk '/Schemes:/{flag=1; next} flag' | grep -iE "Moonlight|VoidLink" | grep -iv "TV" | head -n 1 | xargs)
           
-          # 3. Build the app using the discovered project and scheme
+          # 3. Build the app using the securely discovered scheme
           xcodebuild clean build -project "$PROJECT" -scheme "$SCHEME" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath Build_out
           
-          # 4. Find the generated .app folder and pack it into an IPA
+          # 4. Pack the compiled app into an IPA
           mkdir Payload
           APP_PATH=$(find Build_out/Build/Products/Release-iphoneos -maxdepth 1 -type d -name "*.app" | head -n 1)
           cp -R "$APP_PATH" Payload/
