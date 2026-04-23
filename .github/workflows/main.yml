@@ -15,11 +15,9 @@ jobs:
 
       - name: Compile and Build Unsigned IPA
         run: |
-          PROJECT=$(ls | grep \.xcodeproj | head -n 1)
-          SCHEME=$(xcodebuild -list -project "$PROJECT" | awk '/Schemes:/{getline; print $1; exit}')
-          xcodebuild clean build -project "$PROJECT" -scheme "$SCHEME" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath Build
+          xcodebuild clean build -project Moonlight.xcodeproj -scheme "Moonlight" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath Build_out
           mkdir Payload
-          find Build -type d -name "*.app" -exec cp -R {} Payload/ \;
+          cp -R Build_out/Build/Products/Release-iphoneos/Moonlight.app Payload/
           zip -r VoidLink.ipa Payload
 
       - name: Upload IPA Artifact
