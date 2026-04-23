@@ -1,0 +1,29 @@
+name: Build VoidLink IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: Integration
+          submodules: recursive
+
+      - name: Compile and Build Unsigned IPA
+        run: |
+          PROJECT=$(ls | grep \.xcodeproj | head -n 1)
+          SCHEME=$(xcodebuild -list -project "$PROJECT" | awk '/Schemes:/{getline; print $1; exit}')
+          xcodebuild clean build -project "$PROJECT" -scheme "$SCHEME" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -derivedDataPath Build
+          mkdir Payload
+          find Build -type d -name "*.app" -exec cp -R {} Payload/ \;
+          zip -r VoidLink.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoidLink-IPA
+          path: VoidLink.ipa
